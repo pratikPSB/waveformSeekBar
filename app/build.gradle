@@ -1,14 +1,16 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 36
     ndkVersion "21.1.6352462"
 
     defaultConfig {
         applicationId "com.masoudss"
         minSdkVersion 21
-        targetSdkVersion 32
+        targetSdkVersion 36
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -23,15 +25,46 @@ android {
     buildFeatures {
         viewBinding true
     }
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging false
+        }
+    }
+    namespace 'com.masoudss'
+
+//    java {
+//        sourceCompatibility = JavaVersion.VERSION_17
+//        targetCompatibility = JavaVersion.VERSION_17
+//    }
+//
+//    tasks.withType(KotlinCompile).configureEach {
+//        kotlinOptions {
+//            jvmTarget = "17"
+//        }
+//    }
+
+//    java {
+//        toolchain {
+//            languageVersion = JavaLanguageVersion.of(1.8) // Or your desired version
+//        }
+//    }
+//
+//    compileOptions {
+//        sourceCompatibility = JavaVersion.VERSION_1_8
+//        targetCompatibility = JavaVersion.VERSION_1_8
+//    }
+//
+//    kotlinOptions {
+//        jvmTarget = '1.8'
+//    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.6.0-alpha04'
-    implementation 'androidx.core:core-ktx:1.9.0-alpha04'
-    implementation 'com.google.android.material:material:1.7.0-alpha02'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation "org.jetbrains.anko:anko-commons:0.10.0"
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'com.google.android.material:material:1.13.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
 
     implementation project(':lib')
     implementation 'com.github.lincollincol:amplituda:v2.3.1'
