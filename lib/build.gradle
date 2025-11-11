@@ -24,7 +24,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.appcompat:appcompat:1.4.2"
-    compileOnly 'com.github.lincollincol:amplituda:2.1.0'
+    compileOnly 'com.github.lincollincol:amplituda:v2.3.1'
 }
 repositories {
     mavenCentral()
