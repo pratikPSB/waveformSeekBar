@@ -1,18 +1,19 @@
 package com.masoudss.activity
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.masoudss.adapter.AudioAdapter
 import com.masoudss.databinding.ActivitySelectAudioBinding
 import com.masoudss.model.AudioModel
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 
 class SelectAudioActivity : AppCompatActivity() {
@@ -43,9 +44,7 @@ class SelectAudioActivity : AppCompatActivity() {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun loadAudioFiles() {
-
-        doAsync {
-
+        lifecycleScope.async(Dispatchers.IO) {
             var cursor: Cursor? = null
             try {
                 cursor = contentResolver.query(
@@ -70,8 +69,7 @@ class SelectAudioActivity : AppCompatActivity() {
             } finally {
                 cursor?.close()
             }
-
-            uiThread {
+            lifecycleScope.launch(Dispatchers.Main) {
                 binding.audioRecyclerView.adapter?.notifyDataSetChanged()
             }
         }
@@ -80,7 +78,7 @@ class SelectAudioActivity : AppCompatActivity() {
     fun onSelectAudio(audioModel: AudioModel) {
         val intent = Intent()
         intent.putExtra("path", audioModel.path)
-        setResult(Activity.RESULT_OK, intent)
+        setResult(RESULT_OK, intent)
         finish()
     }
 }

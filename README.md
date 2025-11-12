@@ -129,29 +129,29 @@ waveformSeekBar.apply {
 
 You can customize WaveformSeekBar, all of this attributes can change via xml or code (runtime)
 
-|Attribute|Type|Kotlin|Description|
-|:---:|:---:|:---:|:---:|
-|wave_progress|Float|`progress`|SeekBar progress value, default value is `0F`|
-|wave_max_progress|Float|`maxProgress`|SeekBar max progress value, default value is `100F`|
-|wave_visible_progress|Float|`visibleProgress`|How much part of the progress should be shown, default value is `0F` meaning everything is shown and progress indicator moves, if value > `0F` the bars move and progress indicator stays in the center|
-|wave_width|Dimension|`waveWidth`|Width of each wave, default value is `5dp`|
-|wave_gap|Dimension|`waveGap`|Gap width between waves, default value is `2dp`|
-|wave_padding_top|Dimension|`wavePaddingTop`|Waves padding width from top, default value is `0`|
-|wave_padding_bottom|Dimension|`wavePaddingBottom`|Waves padding width from bottom, default value is `0`|
-|wave_padding_right|Dimension|`wavePaddingRight`|Waves padding width from right, default value is `0`|
-|wave_padding_left|Dimension|`wavePaddingLeft`|Waves padding width from left, default value is `0`|
-|wave_min_height|Dimension|`waveMinHeight`|Minimum height of each wave, default value is equal to `waveWidth`|
-|wave_corner_radius|Dimension|`waveCornerRadius`|Corner radius of each wave, default value is `2dp`|
-|wave_gravity|Enum|`waveGravity`|Waves Gravity, default is `WaveGravity.CENTER`|
-|wave_background_color|Color|`waveBackgroundColor`|Unreached Waves color, default color is `Color.LTGRAY`|
-|wave_progress_color|Color|`waveProgressColor`|Reached Waves color, default color is `Color.WHITE`|
-|marker_width|Dimension|`markerWidth`|Marker vertical line width, default value is `1dp`|
-|marker_color|Color|`markerColor`|Marker vertical line color, default value is `Color.GREEN`|
-|marker_text_size|Dimension|`markerTextSize`|Marker text size, default value is `12dp`|
-|marker_text_color|Color|`markerTextColor`|Marker text color, default color is `Color.RED` |
-|marker_text_padding|Dimension|`markerTextPadding`|Marker text padding, default value is `0`|
-| - |IntArray|`sample`|Sample data for drawing waves, default is `null`|
-| - |hashMapOf<Float,String>|`marker`|Marker map for drawing markers, default is `null`|
+|       Attribute       |          Type           |        Kotlin         |                                                                                               Description                                                                                               |
+|:---------------------:|:-----------------------:|:---------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|     wave_progress     |          Float          |      `progress`       |                                                                              SeekBar progress value, default value is `0F`                                                                              |
+|   wave_max_progress   |          Float          |     `maxProgress`     |                                                                           SeekBar max progress value, default value is `100F`                                                                           |
+| wave_visible_progress |          Float          |   `visibleProgress`   | How much part of the progress should be shown, default value is `0F` meaning everything is shown and progress indicator moves, if value > `0F` the bars move and progress indicator stays in the center |
+|      wave_width       |        Dimension        |      `waveWidth`      |                                                                               Width of each wave, default value is `5dp`                                                                                |
+|       wave_gap        |        Dimension        |       `waveGap`       |                                                                             Gap width between waves, default value is `2dp`                                                                             |
+|   wave_padding_top    |        Dimension        |   `wavePaddingTop`    |                                                                           Waves padding width from top, default value is `0`                                                                            |
+|  wave_padding_bottom  |        Dimension        |  `wavePaddingBottom`  |                                                                          Waves padding width from bottom, default value is `0`                                                                          |
+|  wave_padding_right   |        Dimension        |  `wavePaddingRight`   |                                                                          Waves padding width from right, default value is `0`                                                                           |
+|   wave_padding_left   |        Dimension        |   `wavePaddingLeft`   |                                                                           Waves padding width from left, default value is `0`                                                                           |
+|    wave_min_height    |        Dimension        |    `waveMinHeight`    |                                                                   Minimum height of each wave, default value is equal to `waveWidth`                                                                    |
+|  wave_corner_radius   |        Dimension        |  `waveCornerRadius`   |                                                                           Corner radius of each wave, default value is `2dp`                                                                            |
+|     wave_gravity      |          Enum           |     `waveGravity`     |                                                                             Waves Gravity, default is `WaveGravity.CENTER`                                                                              |
+| wave_background_color |          Color          | `waveBackgroundColor` |                                                                         Unreached Waves color, default color is `Color.LTGRAY`                                                                          |
+|  wave_progress_color  |          Color          |  `waveProgressColor`  |                                                                           Reached Waves color, default color is `Color.WHITE`                                                                           |
+|     marker_width      |        Dimension        |     `markerWidth`     |                                                                           Marker vertical line width, default value is `1dp`                                                                            |
+|     marker_color      |          Color          |     `markerColor`     |                                                                       Marker vertical line color, default value is `Color.GREEN`                                                                        |
+|   marker_text_size    |        Dimension        |   `markerTextSize`    |                                                                                Marker text size, default value is `12dp`                                                                                |
+|   marker_text_color   |          Color          |   `markerTextColor`   |                                                                             Marker text color, default color is `Color.RED`                                                                             |
+|  marker_text_padding  |        Dimension        |  `markerTextPadding`  |                                                                                Marker text padding, default value is `0`                                                                                |
+|           -           |        IntArray         |       `sample`        |                                                                            Sample data for drawing waves, default is `null`                                                                             |
+|           -           | hashMapOf<Float,String> |       `marker`        |                                                                            Marker map for drawing markers, default is `null`                                                                            |
 
 ### Reduce size
 Add ``` android:extractNativeLibs="false" ``` to application in the Manifest.xml

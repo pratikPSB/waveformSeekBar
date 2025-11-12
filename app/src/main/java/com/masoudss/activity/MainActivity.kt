@@ -1,8 +1,7 @@
 package com.masoudss.activity
 
 import android.Manifest
-import android.app.Activity
-import android.app.ProgressDialog
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -11,6 +10,7 @@ import android.os.Bundle
 import android.widget.RadioButton
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -27,6 +27,47 @@ import java.util.Random
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
+    private val requestStoragePermission =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            var denied = false
+            for (i in it.keys.indices)
+                if (!it.values.elementAt(i)) {
+                    denied = true
+                    break
+                }
+            if (denied)
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(R.string.permission_error),
+                    Toast.LENGTH_SHORT
+                ).show()
+            else
+                launchSelectAudioActivity()
+        }
+
+    private val requestIntentLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) {
+                it.data?.let { data ->
+                    val path = data.getStringExtra("path")
+
+
+                    val progressDialog = AlertDialog.Builder(this@MainActivity)
+                    progressDialog.setMessage(getString(R.string.message_waiting))
+                    progressDialog.setCancelable(false)
+
+                    val dialog = progressDialog.show()
+
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        binding.waveformSeekBar.setSampleFrom(path!!)
+                        with(Dispatchers.Main) {
+                            dialog.dismiss()
+                        }
+                    }
+                }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,7 +165,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         binding.gravityRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-            val radioButton = binding.gravityRadioGroup.findViewById(checkedId) as RadioButton
+            val radioButton: RadioButton = binding.gravityRadioGroup.findViewById(checkedId)
             val index = binding.gravityRadioGroup.indexOfChild(radioButton)
             binding.waveformSeekBar.waveGravity = when (index) {
                 0 -> WaveGravity.TOP
@@ -134,7 +175,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.waveColorRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-            val radioButton = binding.waveColorRadioGroup.findViewById(checkedId) as RadioButton
+            val radioButton: RadioButton = binding.waveColorRadioGroup.findViewById(checkedId)
             val index = binding.waveColorRadioGroup.indexOfChild(radioButton)
             binding.waveformSeekBar.waveBackgroundColor = when (index) {
                 0 -> ContextCompat.getColor(this, R.color.pink)
@@ -144,8 +185,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.progressColorRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-
-            val radioButton = binding.progressColorRadioGroup.findViewById(checkedId) as RadioButton
+            val radioButton: RadioButton = binding.progressColorRadioGroup.findViewById(checkedId)
             val index = binding.progressColorRadioGroup.indexOfChild(radioButton)
             binding.waveformSeekBar.waveProgressColor = when (index) {
                 0 -> ContextCompat.getColor(this, R.color.red)
@@ -155,7 +195,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.icGithub.setOnClickListener {
-            val url = "https://github.com/massoudss/waveformSeekBar"
+            val url = "https://github.com/pratikPSB/waveformSeekBar"
             val i = Intent(Intent.ACTION_VIEW)
             i.data = Uri.parse(url)
             startActivity(i)
@@ -166,75 +206,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (data != null && requestCode == REQ_CODE_PICK_SOUND_FILE && resultCode == Activity.RESULT_OK) {
-            val path = data.getStringExtra("path")
-
-            val progressDialog = ProgressDialog(this@MainActivity)
-            progressDialog.setMessage(getString(R.string.message_waiting))
-            progressDialog.show()
-
-            lifecycleScope.launch {
-                binding.waveformSeekBar.setSampleFrom(path!!)
-                with(Dispatchers.Main) {
-                    progressDialog.dismiss()
-                }
-            }
-        }
-    }
-
     private fun checkStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val hasReadPermission = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+            val storageReadPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                Manifest.permission.READ_MEDIA_AUDIO
+            else Manifest.permission.READ_EXTERNAL_STORAGE
+
+            val hasReadPermission = checkSelfPermission(storageReadPermission)
             val hasWritePermission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
-            val permissions = ArrayList<String>()
+            val permissions: ArrayList<String> = arrayListOf()
 
             if (hasReadPermission != PackageManager.PERMISSION_GRANTED)
-                permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                permissions.add(storageReadPermission)
 
-            if (hasWritePermission != PackageManager.PERMISSION_GRANTED)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU && hasWritePermission != PackageManager.PERMISSION_GRANTED)
                 permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
-            if (permissions.isNotEmpty())
-                requestPermissions(permissions.toTypedArray(), REQ_CODE_STORAGE_PERMISSION)
-            else
+            if (permissions.isNotEmpty()) {
+                requestStoragePermission.launch(permissions.toTypedArray())
+            } else
                 launchSelectAudioActivity()
 
         } else
             launchSelectAudioActivity()
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        if (requestCode == REQ_CODE_STORAGE_PERMISSION) {
-            var denied = false
-            for (i in permissions.indices)
-                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                    denied = true
-                    break
-                }
-
-            if (denied)
-                Toast.makeText(
-                    this@MainActivity,
-                    getString(R.string.permission_error),
-                    Toast.LENGTH_SHORT
-                ).show()
-            else
-                launchSelectAudioActivity()
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        }
-    }
-
     private fun launchSelectAudioActivity() {
         val intent = Intent(this@MainActivity, SelectAudioActivity::class.java)
-        startActivityForResult(intent, REQ_CODE_PICK_SOUND_FILE)
+        requestIntentLauncher.launch(intent)
     }
 
     private fun getDummyWaveSample(): IntArray {
@@ -250,10 +250,5 @@ class MainActivity : AppCompatActivity() {
         map[binding.waveformSeekBar.maxProgress / 2] = "Middle"
         map[binding.waveformSeekBar.maxProgress / 4] = "Quarter"
         return map
-    }
-
-    companion object {
-        const val REQ_CODE_PICK_SOUND_FILE = 1
-        const val REQ_CODE_STORAGE_PERMISSION = 2
     }
 }

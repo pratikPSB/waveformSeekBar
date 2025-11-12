@@ -13,6 +13,7 @@ import com.masoudss.lib.utils.Utils
 import com.masoudss.lib.utils.WaveGravity
 import com.masoudss.lib.utils.WaveformOptions
 import java.io.File
+import kotlin.collections.forEach
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -52,7 +53,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
             onProgressChanged?.onProgressChanged(this, progress, false)
         }
 
-    var maxProgress: Float = 100F
+    var maxProgress: Float = 100.0F
         set(value) {
             field = value
             invalidate()
@@ -189,7 +190,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
             ta.getFloat(R.styleable.WaveformSeekBar_wave_visible_progress, visibleProgress)
         val gravity = ta.getString(R.styleable.WaveformSeekBar_wave_gravity)?.toInt()
             ?: WaveGravity.CENTER.ordinal
-        waveGravity = WaveGravity.values()[gravity]
+        waveGravity = WaveGravity.entries.toTypedArray()[gravity]
         markerWidth = ta.getDimension(R.styleable.WaveformSeekBar_marker_width, markerWidth)
         markerColor = ta.getColor(R.styleable.WaveformSeekBar_marker_color, markerColor)
         markerTextColor =
@@ -346,7 +347,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
             //draw markers
             if (visibleProgress <= 0) marker?.forEach {
                 // out of progress range
-                if (it.key < 0 || it.key > maxProgress) return
+                if (it.key !in 0.0..maxProgress.toDouble()) return
 
                 val markerXPosition = getAvailableWidth() * (it.key / maxProgress)
                 mMarkerRect.set(
@@ -428,7 +429,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
     }
 
     private fun updateProgress(event: MotionEvent) {
-        progress = getProgress(event);
+        progress = getProgress(event)
         onProgressChanged?.onProgressChanged(this, progress, true)
     }
 
