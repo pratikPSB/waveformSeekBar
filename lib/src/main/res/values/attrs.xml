@@ -19,6 +19,10 @@
             <enum name="center" value="1" />
             <enum name="bottom" value="2" />
         </attr>
+        <attr name="wave_starting_point" format="enum">
+            <enum name="right_to_left" value="0" />
+            <enum name="left_to_right" value="1" />
+        </attr>
         <attr name="marker_width" format="dimension" />
         <attr name="marker_color" format="color" />
         <attr name="marker_text_size" format="dimension" />

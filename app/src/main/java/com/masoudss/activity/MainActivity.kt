@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.RadioButton
@@ -13,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import com.masoudss.R
 import com.masoudss.databinding.ActivityMainBinding
@@ -20,6 +20,7 @@ import com.masoudss.lib.SeekBarOnProgressChanged
 import com.masoudss.lib.WaveformSeekBar
 import com.masoudss.lib.utils.Utils
 import com.masoudss.lib.utils.WaveGravity
+import com.masoudss.lib.utils.WaveStartingPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Random
@@ -82,6 +83,7 @@ class MainActivity : AppCompatActivity() {
             waveMinHeight = Utils.dp(this@MainActivity, 5)
             waveCornerRadius = Utils.dp(this@MainActivity, 2)
             waveGravity = WaveGravity.CENTER
+            waveStartingPoint = WaveStartingPoint.RIGHT_TO_LEFT
             waveBackgroundColor = ContextCompat.getColor(this@MainActivity, R.color.white)
             waveProgressColor = ContextCompat.getColor(this@MainActivity, R.color.blue)
             sample = getDummyWaveSample()
@@ -174,6 +176,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        binding.startingPointRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+            val radioButton: RadioButton = binding.startingPointRadioGroup.findViewById(checkedId)
+            val index = binding.startingPointRadioGroup.indexOfChild(radioButton)
+            binding.waveformSeekBar.waveStartingPoint = when (index) {
+                0 -> WaveStartingPoint.RIGHT_TO_LEFT
+                else -> WaveStartingPoint.LEFT_TO_RIGHT
+            }
+        }
+
         binding.waveColorRadioGroup.setOnCheckedChangeListener { _, checkedId ->
             val radioButton: RadioButton = binding.waveColorRadioGroup.findViewById(checkedId)
             val index = binding.waveColorRadioGroup.indexOfChild(radioButton)
@@ -197,7 +208,7 @@ class MainActivity : AppCompatActivity() {
         binding.icGithub.setOnClickListener {
             val url = "https://github.com/pratikPSB/waveformSeekBar"
             val i = Intent(Intent.ACTION_VIEW)
-            i.data = Uri.parse(url)
+            i.data = url.toUri()
             startActivity(i)
         }
 

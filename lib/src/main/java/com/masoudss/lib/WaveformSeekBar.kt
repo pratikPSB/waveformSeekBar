@@ -1,7 +1,13 @@
 package com.masoudss.lib
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.BitmapShader
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Shader
 import android.net.Uri
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -11,9 +17,9 @@ import androidx.annotation.RawRes
 import com.masoudss.lib.utils.ThreadBlocking
 import com.masoudss.lib.utils.Utils
 import com.masoudss.lib.utils.WaveGravity
+import com.masoudss.lib.utils.WaveStartingPoint
 import com.masoudss.lib.utils.WaveformOptions
 import java.io.File
-import kotlin.collections.forEach
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -125,6 +131,12 @@ open class WaveformSeekBar @JvmOverloads constructor(
             invalidate()
         }
 
+    var waveStartingPoint: WaveStartingPoint = WaveStartingPoint.LEFT_TO_RIGHT
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     var marker: HashMap<Float, String>? = null
         set(value) {
             field = value
@@ -191,6 +203,9 @@ open class WaveformSeekBar @JvmOverloads constructor(
         val gravity = ta.getString(R.styleable.WaveformSeekBar_wave_gravity)?.toInt()
             ?: WaveGravity.CENTER.ordinal
         waveGravity = WaveGravity.entries.toTypedArray()[gravity]
+        val startingPoint = ta.getString(R.styleable.WaveformSeekBar_wave_starting_point)?.toInt()
+            ?: WaveStartingPoint.LEFT_TO_RIGHT.ordinal
+        waveStartingPoint = WaveStartingPoint.entries.toTypedArray()[startingPoint]
         markerWidth = ta.getDimension(R.styleable.WaveformSeekBar_marker_width, markerWidth)
         markerColor = ta.getColor(R.styleable.WaveformSeekBar_marker_color, markerColor)
         markerTextColor =
@@ -252,6 +267,8 @@ open class WaveformSeekBar @JvmOverloads constructor(
             if (waveSample.isEmpty())
                 return
 
+            val isRTL = waveStartingPoint == WaveStartingPoint.RIGHT_TO_LEFT
+
             canvas.clipRect(
                 paddingLeft,
                 paddingTop,
@@ -261,7 +278,11 @@ open class WaveformSeekBar @JvmOverloads constructor(
             val totalWaveWidth = waveGap + waveWidth
             var step = waveSample.size / (getAvailableWidth() / totalWaveWidth)
 
-            var previousWaveRight = paddingLeft.toFloat() + wavePaddingLeft
+            var previousWaveRight = if (isRTL) {
+                (mCanvasWidth - paddingRight - wavePaddingRight).toFloat()
+            } else {
+                paddingLeft.toFloat() + wavePaddingLeft
+            }
             var sampleItemPosition: Int
 
             val barsToDraw = (getAvailableWidth() / totalWaveWidth).toInt()
@@ -277,13 +298,22 @@ open class WaveformSeekBar @JvmOverloads constructor(
                 previousWaveRight += (getAvailableWidth() * 0.5F) % totalWaveWidth
                 previousWaveRight += intFactor * 0.5F * totalWaveWidth - totalWaveWidth
                 // Calculate start change depending on progress, so that it moves smoothly
-                previousWaveRight -= ((progress + intFactor * visibleProgress / barsForProgress * 0.5f) % (visibleProgress / barsForProgress)) / (visibleProgress / barsForProgress) * totalWaveWidth
+                val progressOffset =
+                    ((progress + intFactor * visibleProgress / barsForProgress * 0.5f)
+                            % (visibleProgress / barsForProgress)) /
+                            (visibleProgress / barsForProgress) * totalWaveWidth
+
+                previousWaveRight += if (isRTL) progressOffset else -progressOffset
                 start =
                     (progress * barsForProgress / visibleProgress - (barsForProgress / 2F)).roundToInt() - 1
                 progressXPosition = getAvailableWidth() * 0.5F
             } else {
                 start = 0
-                progressXPosition = getAvailableWidth() * progress / maxProgress
+                progressXPosition = if (isRTL) {
+                    getAvailableWidth() * (1f - progress / maxProgress)
+                } else {
+                    getAvailableWidth() * progress / maxProgress
+                }
             }
 
             // draw waves
@@ -302,17 +332,26 @@ open class WaveformSeekBar @JvmOverloads constructor(
                     WaveGravity.BOTTOM -> mCanvasHeight - paddingBottom - wavePaddingBottom - waveHeight
                 }
 
-                mWaveRect.set(
-                    previousWaveRight,
-                    top,
-                    previousWaveRight + waveWidth,
-                    top + waveHeight
-                )
+                if (isRTL) {
+                    mWaveRect.set(
+                        previousWaveRight - waveWidth,
+                        top,
+                        previousWaveRight,
+                        top + waveHeight
+                    )
+                } else {
+                    mWaveRect.set(
+                        previousWaveRight,
+                        top,
+                        previousWaveRight + waveWidth,
+                        top + waveHeight
+                    )
+                }
                 when {
                     // if progress is currently in waveRect, color have to be split up
                     mWaveRect.contains(progressXPosition, mWaveRect.centerY()) -> {
                         mProgressCanvas.setBitmap(progressBitmap)
-                        mWavePaint.color = waveProgressColor
+                        mWavePaint.color = if (isRTL) waveBackgroundColor else waveProgressColor
                         mProgressCanvas.drawRect(
                             0F,
                             0F,
@@ -320,7 +359,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
                             mWaveRect.bottom,
                             mWavePaint
                         )
-                        mWavePaint.color = waveBackgroundColor
+                        mWavePaint.color = if (isRTL) waveProgressColor else waveBackgroundColor
                         mProgressCanvas.drawRect(
                             progressXPosition,
                             0F,
@@ -330,17 +369,24 @@ open class WaveformSeekBar @JvmOverloads constructor(
                         )
                         mWavePaint.shader = progressShader
                     }
+
                     mWaveRect.right <= progressXPosition -> {
-                        mWavePaint.color = waveProgressColor
+                        mWavePaint.color = if (isRTL) waveBackgroundColor else waveProgressColor
                         mWavePaint.shader = null
                     }
+
                     else -> {
-                        mWavePaint.color = waveBackgroundColor
+                        mWavePaint.color = if (isRTL) waveProgressColor else waveBackgroundColor
                         mWavePaint.shader = null
                     }
                 }
                 canvas.drawRoundRect(mWaveRect, waveCornerRadius, waveCornerRadius, mWavePaint)
-                previousWaveRight = mWaveRect.right + waveGap
+//                previousWaveRight = mWaveRect.right + waveGap
+                previousWaveRight = if (isRTL) {
+                    mWaveRect.left - waveGap
+                } else {
+                    mWaveRect.right + waveGap
+                }
             }
 
             // TODO: implement for visibleProgress > 0
@@ -349,7 +395,12 @@ open class WaveformSeekBar @JvmOverloads constructor(
                 // out of progress range
                 if (it.key !in 0.0..maxProgress.toDouble()) return
 
-                val markerXPosition = getAvailableWidth() * (it.key / maxProgress)
+//                val markerXPosition = getAvailableWidth() * (it.key / maxProgress)
+                val markerXPosition = if (isRTL) {
+                    getAvailableWidth() * (1f - it.key / maxProgress)
+                } else {
+                    getAvailableWidth() * (it.key / maxProgress)
+                }
                 mMarkerRect.set(
                     markerXPosition - (markerWidth / 2),
                     0f,
@@ -381,12 +432,14 @@ open class WaveformSeekBar @JvmOverloads constructor(
                     mProgress = progress
                     mAlreadyMoved = false
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     if (abs(event.x - mTouchDownX) > mScaledTouchSlop || mAlreadyMoved) {
                         updateProgress(event)
                         mAlreadyMoved = true
                     }
                 }
+
                 MotionEvent.ACTION_UP -> {
                     performClick()
                 }
@@ -399,9 +452,11 @@ open class WaveformSeekBar @JvmOverloads constructor(
                     else
                         updateProgress(event)
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     updateProgress(event)
                 }
+
                 MotionEvent.ACTION_UP -> {
                     if (abs(event.x - mTouchDownX) > mScaledTouchSlop)
                         updateProgress(event)
@@ -434,13 +489,19 @@ open class WaveformSeekBar @JvmOverloads constructor(
     }
 
     private fun getProgress(event: MotionEvent): Float {
-        return if (visibleProgress > 0) {
-            (mProgress - visibleProgress * (event.x - mTouchDownX) / getAvailableWidth()).coerceIn(
-                0F,
-                maxProgress
-            )
+        val effectiveX = if (waveStartingPoint == WaveStartingPoint.RIGHT_TO_LEFT) {
+            getAvailableWidth() - event.x
         } else {
-            maxProgress * event.x / getAvailableWidth()
+            event.x
+        }
+
+        return if (visibleProgress > 0) {
+            val deltaX = effectiveX - mTouchDownX
+            (mProgress - visibleProgress * deltaX / getAvailableWidth())
+                .coerceIn(0F, maxProgress)
+        } else {
+            (maxProgress * effectiveX / getAvailableWidth())
+                .coerceIn(0F, maxProgress)
         }
     }
 
