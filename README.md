@@ -1,7 +1,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-# WaveformSeekBar
-Android Waveform SeekBar library
+# WaveformSeekBar [![](https://jitpack.io/v/pratikPSB/waveformSeekBar.svg)](https://jitpack.io/#pratikPSB/waveformSeekBar)
+Android Waveform SeekBar library 
 
 <img src="./files/preview.png" width="1080" alt="preview">
 <img src="./files/preview_with_markers.png" width ="1011" alt="preview_with_markers">
@@ -20,11 +20,12 @@ allprojects {
   }
 }
 ```
-Add the dependency to your app build.gradle file
+Add the dependency to your app build.gradle file 
+[![](https://jitpack.io/v/pratikPSB/waveformSeekBar.svg)](https://jitpack.io/#pratikPSB/waveformSeekBar)
 
 ``` groovy
 dependencies {
-    implementation  'com.github.pratikPSB:waveformSeekBar:6.0.0'
+    implementation  'com.github.pratikPSB:waveformSeekBar:latest_version'
 
     // Amplitude will allow you to call setSampleFrom() with files, URLs, Uri and resources
     // Important: Only works with api level 21 and higher
